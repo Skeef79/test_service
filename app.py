@@ -20,6 +20,7 @@ application = Flask(__name__)
 
 
 #загружаем модели из файла
+
 vec = pickle.load(open("./models/tfidf.pickle", "rb"))
 model = lgb.Booster(model_file='./models/lgbm_model.txt')
 
@@ -39,25 +40,27 @@ def registration():
     resp = {'message':'ok'
            ,'category': -1
            }
-
     try:
         getData = request.get_data()
-        json_params = json.loads(getData) 
-        
+        json_params = json.loads(getData)
+
+        vec = pickle.load(open("models/tfidf.pickle", "rb"))
+        model = lgb.Booster(model_file = 'models/lgbm_model.txt')
+
+        message = json_params['user_message']
+
+        result = model.predict(vec.transform([message]).toarray())
+        resp['prediction'] = result.tolist()
+
         #напишите прогноз и верните его в ответе в параметре 'prediction'
-
-
-
-        
     except Exception as e: 
         print(e)
         resp['message'] = e
-      
+
+
     response = jsonify(resp)
     
     return response
-
-        
 
 if __name__ == "__main__":
     port = int(os.getenv('PORT', 5000))
